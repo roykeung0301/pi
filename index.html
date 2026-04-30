@@ -1,214 +1,332 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>自製教學工具：面積逼近圓周率</title>
-    <style>
-        :root {
-            --primary-color: #0071e3;
-            --bg-color: #f5f5f7;
-            --card-bg: #ffffff;
-            --text-color: #1d1d1f;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>割圓術 — 探索幾何極限</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 20px;
+    font-family: '標楷體', '楷體', 'KaiTi', '思源宋體', serif;
+    background: linear-gradient(135deg, #FFF8E7 0%, #E8F4FD 100%);
+    color: #3D2E28;
+    min-height: 100vh;
+  }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 40px 20px;
-            margin: 0;
-        }
+  header {
+    text-align: center;
+    margin-bottom: 20px;
+  }
 
-        .container {
-            background: var(--card-bg);
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-            max-width: 800px;
-            width: 100%;
-            text-align: center;
-        }
+  h1 {
+    font-size: 42px;
+    color: #FF6B6B;
+    margin: 0 0 8px;
+    text-shadow: 3px 3px 0 #FFE066;
+  }
 
-        h1 { font-weight: 600; font-size: 24px; margin-bottom: 10px; }
-        p { color: #86868b; margin-bottom: 30px; }
+  .subtitle {
+    font-size: 20px;
+    color: #6B4C3B;
+    margin: 0;
+  }
 
-        canvas {
-            background: #fff;
-            border: 1px solid #d2d2d7;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            max-width: 100%;
-        }
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 350px;
+    gap: 25px;
+  }
 
-        .controls {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            align-items: center;
-            margin-top: 10px;
-        }
+  @media (max-width: 1000px) {
+    .container { grid-template-columns: 1fr; }
+  }
 
-        .slider-box {
-            width: 100%;
-            max-width: 500px;
-        }
+  .canvas-card {
+    background: white;
+    border: 5px solid #FF8A80;
+    border-radius: 30px;
+    padding: 20px;
+    box-shadow: 0 8px 0 #FFB6C1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
 
-        input[type=range] {
-            width: 100%;
-            height: 6px;
-            background: #d2d2d7;
-            border-radius: 5px;
-            outline: none;
-            -webkit-appearance: none;
-        }
+  canvas {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    background: #FFFCF5;
+    border-radius: 20px;
+  }
 
-        input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 20px;
-            height: 20px;
-            background: var(--primary-color);
-            border-radius: 50%;
-            cursor: pointer;
-        }
+  .panel {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
 
-        .stats {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            width: 100%;
-            margin-top: 20px;
-        }
+  .card {
+    background: white;
+    border-radius: 25px;
+    padding: 22px;
+    border: 4px solid;
+    box-shadow: 0 6px 0 rgba(0,0,0,0.08);
+  }
 
-        .stat-card {
-            background: #fbfbfd;
-            padding: 15px;
-            border-radius: 12px;
-            border: 1px solid #d2d2d7;
-        }
+  .card.controls { border-color: #7ECBF1; box-shadow: 0 6px 0 #B6E0F5; }
+  .card.tips     { border-color: #CBB4F7; box-shadow: 0 6px 0 #DCC9FA; }
 
-        .stat-label { font-size: 14px; color: #86868b; margin-bottom: 5px; }
-        .stat-value { font-size: 24px; font-weight: bold; color: var(--primary-color); font-family: monospace; }
-        
-        .formula {
-            margin-top: 30px;
-            padding: 15px;
-            background: #f5f5f7;
-            border-radius: 10px;
-            font-size: 14px;
-            text-align: left;
-            font-family: monospace;
-            border-left: 4px solid var(--primary-color);
-        }
-    </style>
+  .card h2 {
+    margin: 0 0 15px;
+    font-size: 24px;
+    color: #FF6B6B;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .row { margin: 20px 0; }
+  .row label {
+    font-size: 18px;
+    font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    color: #6B4C3B;
+  }
+
+  .pill {
+    background: #FFE066;
+    color: #6B4C3B;
+    padding: 2px 15px;
+    border-radius: 15px;
+    font-family: 'Consolas', monospace;
+    font-size: 18px;
+  }
+
+  input[type=range] {
+    width: 100%;
+    height: 30px;
+    -webkit-appearance: none;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  input[type=range]::-webkit-slider-runnable-track {
+    height: 12px;
+    background: linear-gradient(90deg, #FFB6C1, #7ECBF1);
+    border-radius: 6px;
+    border: 2px solid #6B4C3B;
+  }
+
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    height: 28px;
+    width: 28px;
+    border-radius: 50%;
+    background: #FFE066;
+    border: 3px solid #FF6B6B;
+    margin-top: -10px;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  }
+
+  .button-row {
+    display: flex;
+    gap: 12px;
+    margin-top: 15px;
+  }
+
+  button {
+    flex: 1;
+    padding: 12px;
+    font-size: 18px;
+    font-weight: bold;
+    font-family: inherit;
+    color: white;
+    border: none;
+    border-radius: 18px;
+    cursor: pointer;
+    transition: transform 0.1s;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.15);
+  }
+  
+  button:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(0,0,0,0.15); }
+  .btn-reset { background: #7ECBF1; }
+  .btn-play { background: #FF6B6B; }
+
+  .tips ul {
+    margin: 0;
+    padding-left: 25px;
+    line-height: 1.8;
+    font-size: 16px;
+    color: #6B4C3B;
+  }
+  .tips li { margin-bottom: 8px; }
+
+  footer {
+    text-align: center;
+    margin-top: 30px;
+    color: #8A7A6E;
+    font-size: 14px;
+  }
+</style>
 </head>
 <body>
 
-    <div class="container">
-        <h1>用面積逼近圓周率 (π)</h1>
-        <p>調整多邊形的邊數，觀察面積如何接近 3.14159...</p>
+<header>
+  <h1>🔴 割圓術</h1>
+  <p class="subtitle">當圓內接正多邊形邊數愈來愈多，看看有什麼變化？</p>
+</header>
 
-        <canvas id="piCanvas" width="500" height="500"></canvas>
+<div class="container">
 
-        <div class="controls">
-            <div class="slider-box">
-                <label for="nSlider">邊數 (n)：<span id="nValue">6</span></label>
-                <input type="range" id="nSlider" min="3" max="200" value="6">
-            </div>
+  <div class="canvas-card">
+    <canvas id="cv" width="600" height="600"></canvas>
+  </div>
 
-            <div class="stats">
-                <div class="stat-card">
-                    <div class="stat-label">當前多邊形面積</div>
-                    <div class="stat-value" id="areaValue">2.59808</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">圓周率 (π) 參考值</div>
-                    <div class="stat-value">3.14159</div>
-                </div>
-            </div>
-        </div>
+  <div class="panel">
 
-        <div class="formula">
-            <strong>Python 邏輯參考：</strong><br>
-            import math<br>
-            area = (n * r**2 * math.sin(2 * math.pi / n)) / 2
-        </div>
+    <div class="card controls">
+      <h2>🎛 操控板</h2>
+
+      <div class="row">
+        <label>邊數 n <span class="pill" id="nVal">6</span></label>
+        <input type="range" id="nSlider" min="3" max="64" value="6" step="1">
+      </div>
+
+      <div class="row">
+        <label>圓的半徑 r <span class="pill" id="rVal">200</span></label>
+        <input type="range" id="rSlider" min="100" max="250" value="200" step="5">
+      </div>
+
+      <div class="button-row">
+        <button class="btn-play" id="btnPlay">▶ 自動增加</button>
+        <button class="btn-reset" id="btnReset">↺ 重置</button>
+      </div>
     </div>
 
-    <script>
-        const canvas = document.getElementById('piCanvas');
-        const ctx = canvas.getContext('2d');
-        const slider = document.getElementById('nSlider');
-        const nValue = document.getElementById('nValue');
-        const areaValue = document.getElementById('areaValue');
+    <div class="card tips">
+      <h2>💡 教學貼士</h2>
+      <ul>
+        <li>觀察當邊數 $n$ 增加時，多邊形的邊長有什麼變化？</li>
+        <li>觀察多邊形的面積是否愈來愈接近圓形的面積？</li>
+        <li>當 $n=64$ 時，多邊形看起來是不是已經像個圓了？</li>
+      </ul>
+    </div>
+  </div>
+</div>
 
-        const centerX = canvas.width / 2;
-        const centerY = canvas.height / 2;
-        const radius = 200;
+<footer>
+  保良局黃永樹小學 · 五年級數學教學工具 · 2026
+</footer>
 
-        function draw() {
-            const n = parseInt(slider.value);
-            nValue.textContent = n;
+<script>
+(() => {
+  const canvas = document.getElementById('cv');
+  const ctx = canvas.getContext('2d');
 
-            // 計算面積: Area = (n * r^2 * sin(2π/n)) / 2
-            // 這裡假設單位圓 r = 1，所以結果直接就是 π 的近似值
-            const area = (n * Math.sin((2 * Math.PI) / n)) / 2;
-            areaValue.textContent = area.toFixed(5);
+  const nSlider = document.getElementById('nSlider');
+  const rSlider = document.getElementById('rSlider');
+  const nVal = document.getElementById('nVal');
+  const rVal = document.getElementById('rVal');
+  const btnReset = document.getElementById('btnReset');
+  const btnPlay = document.getElementById('btnPlay');
 
-            // 清除畫布
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+  let n = +nSlider.value;
+  let r = +rSlider.value;
+  let animating = false;
+  let lastTime = 0;
 
-            // 繪製外接圓
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
-            ctx.strokeStyle = '#d2d2d7';
-            ctx.lineWidth = 2;
-            ctx.stroke();
+  function draw() {
+    const W = canvas.width;
+    const H = canvas.height;
+    const centerX = W / 2;
+    const centerY = H / 2;
 
-            // 繪製內接多邊形
-            ctx.beginPath();
-            for (let i = 0; i <= n; i++) {
-                const angle = (i * 2 * Math.PI) / n - Math.PI / 2;
-                const x = centerX + radius * Math.cos(angle);
-                const y = centerY + radius * Math.sin(angle);
-                if (i === 0) ctx.moveTo(x, y);
-                else ctx.lineTo(x, y);
-            }
-            ctx.closePath();
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#FFFCF5';
+    ctx.fillRect(0, 0, W, H);
 
-            // 填充多邊形
-            ctx.fillStyle = 'rgba(0, 113, 227, 0.2)';
-            ctx.fill();
-            
-            // 描邊多邊形
-            ctx.strokeStyle = '#0071e3';
-            ctx.lineWidth = 3;
-            ctx.lineJoin = 'round';
-            ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, r, 0, Math.PI * 2);
+    ctx.strokeStyle = '#d2d2d7';
+    ctx.lineWidth = 3;
+    ctx.stroke();
 
-            // 繪製中心點到頂點的連線 (輔助線)
-            if (n <= 100) {
-                ctx.beginPath();
-                ctx.setLineDash([5, 5]);
-                for (let i = 0; i < n; i++) {
-                    const angle = (i * 2 * Math.PI) / n - Math.PI / 2;
-                    ctx.moveTo(centerX, centerY);
-                    ctx.lineTo(centerX + radius * Math.cos(angle), centerY + radius * Math.sin(angle));
-                }
-                ctx.strokeStyle = '#86868b';
-                ctx.lineWidth = 1;
-                ctx.stroke();
-                ctx.setLineDash([]);
-            }
-        }
+    ctx.beginPath();
+    for (let i = 0; i <= n; i++) {
+      const angle = (i * 2 * Math.PI) / n - Math.PI / 2;
+      const x = centerX + r * Math.cos(angle);
+      const y = centerY + r * Math.sin(angle);
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(126, 203, 241, 0.3)';
+    ctx.fill();
+    ctx.strokeStyle = '#0071e3';
+    ctx.lineWidth = 4;
+    ctx.lineJoin = 'round';
+    ctx.stroke();
 
-        slider.oninput = draw;
-        
-        // 初始繪圖
+    ctx.beginPath();
+    ctx.setLineDash([8, 6]);
+    for (let i = 0; i < n; i++) {
+      const angle = (i * 2 * Math.PI) / n - Math.PI / 2;
+      ctx.moveTo(centerX, centerY);
+      ctx.lineTo(centerX + r * Math.cos(angle), centerY + r * Math.sin(angle));
+    }
+    ctx.strokeStyle = '#FF8A80';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    nVal.textContent = n;
+    rVal.textContent = r;
+  }
+
+  function animLoop(time) {
+    if (!animating) return;
+    const dt = time - lastTime;
+    if (dt > 200) {
+      let curN = +nSlider.value;
+      if (curN < 64) {
+        curN++;
+        nSlider.value = curN;
+        n = curN;
         draw();
-    </script>
+      } else {
+        animating = false;
+        btnPlay.textContent = '▶ 自動增加';
+      }
+      lastTime = time;
+    }
+    requestAnimationFrame(animLoop);
+  }
+
+  nSlider.oninput = () => { n = +nSlider.value; draw(); };
+  rSlider.oninput = () => { r = +rSlider.value; draw(); };
+  btnReset.onclick = () => {
+    animating = false;
+    btnPlay.textContent = '▶ 自動增加';
+    nSlider.value = 6;
+    n = 6;
+    draw();
+  };
+  btnPlay.onclick = () => {
+    animating = !animating;
+    btnPlay.textContent = animating ? '⏸ 暫停' : '▶ 自動增加';
+    if (animating) { lastTime = performance.now(); requestAnimationFrame(animLoop); }
+  };
+  draw();
+})();
+</script>
 </body>
 </html>
+
